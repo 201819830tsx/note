@@ -78,6 +78,13 @@ destoryed   vue实例销毁之后执行  vue实例销毁后，dom元素还存在
 
 ## 四、路由
 
+<font color='blue'>注意：路由信息是用`$route`,而路由导航是用`$router`</font>
+
+在Vue.js 2中，`$route` 和 `$router` 是两个不同的对象，分别用于访问路由信息和执行路由导航。
+
+- `$route`： `$route` 是一个用于访问当前激活路由的只读属性。它包含了当前路由的各种信息，如路由路径、参数、查询参数等。通过 `$route`，可以获取当前路由的信息并在组件中进行使用。
+- `$router`：`$router` 是路由器的实例对象，它提供了一些用于动态导航的方法。通过 `$router`，可以执行路由导航操作，如跳转到不同的路由、返回上一级路由等。常见的方法包括 `$router.push()`、`$router.replace()`、`$router.go()` 等。
+
 #### 1.入门学习
 
 我的理解：**路由可以理解为计算机网络中的路由器，一个是转发包，一个是转发组件（对应的HTML片段），将组件映射到对应的地址，进行渲染。**
@@ -320,3 +327,251 @@ export default router
 ~~~
 
 <font color='blue'>注意：最后要导出，作为模块使用</font>
+
+浏览器会自动将<router-link>转换为a标签
+
+~~~vue
+<div class="menu">
+    <a href="#/find" class="">发现音乐</a>
+    <a href="#/friend" class="router-link-exact-active router-link-active" aria-current="page">朋友</a>
+    <a href="#/my" class="">我的音乐</a>
+</div>
+~~~
+
+![image-20230706121829652](https://raw.githubusercontent.com/201819830tsx/pic/master/img/image-20230706121829652.png)
+
+在声明VueRouter对象时，加入如下代码，可以实现匹配的重命名
+
+~~~javascript
+linkActiveClass: '类名1',
+linkExactActiveClass: '类名2'
+~~~
+
+#### 5.声明式导航-跳转传参
+
+在跳转路由时，进行传值
+
+##### 1.查询参数传参
+
+①语法格式
+
+- to="/path?参数名=值"
+
+②对应页面组件接收传递过来的值
+
+- $route.query.参数名
+
+如果是在create中要发请求，拿到参数需要加上this
+
+~~~vu
+this.$route.params
+~~~
+
+#####  2.动态路由传参
+
+①配置动态路由（我的理解就是将参数名与参数值拆解分开）
+
+URL`/users/johnny`和`/users/jolyne`都会映射到同一路由
+
+~~~javascript
+const routes = [
+  // dynamic segments start with a colon
+  { path: '/users/:id', component: User },
+]
+~~~
+
+| 图案                         | 匹配路径                | $route.params                            |
+| :--------------------------- | :---------------------- | :--------------------------------------- |
+| /用户/:用户名                | /用户/爱德华多          | `{ username: 'eduardo' }`                |
+| /用户/：用户名/帖子/：帖子ID | /用户/爱德华多/帖子/123 | `{ username: 'eduardo', postId: '123' }` |
+
+②配置导航链接
+
+- to="/path/参数值"
+
+③对应页面组件接收传递过来的值
+
+- $route.query.参数名
+
+#### 6.路由重定向
+
+1.重定向也是在`routes`配置中完成的。重定向`/home`自 至`/`：
+
+**2.捕获404**
+
+当路径找不到时，给个提示界面，*代表任意路径，前面的都不匹配就匹配最后一个
+
+~~~javascript
+const routes = [{ path: '/home', redirect: '/' }]
+//例子
+const routes = [
+	{path: '/', redirect: '/my'},
+	{ path: '/find', component: FindVue},
+	{ path: '/friend', component: FriendVue},
+	{ path: '/my', component: MyVue},
+	{ path: '*', component: NotFound}
+]
+~~~
+
+3.模式设置
+
+![image-20230706142735271](https://raw.githubusercontent.com/201819830tsx/pic/master/img/image-20230706142735271.png)
+
+#### 7.编程化导航
+
+**在 Vue 实例内部，可以用`$router`访问路由器实例**
+
+##### 1.path路径跳转
+
+参数可以是字符串路径或位置描述符对象
+
+~~~javascript
+// literal string path
+this.$router.push('/users/eduardo')
+
+// object with path
+this .$router.push({
+  path: '/users/eduardo'
+})
+
+
+
+export default {
+  name: 'app',
+  methods: {
+	  skip() {
+		  this.$router.push({
+			  path: '/find'
+		  })
+	  }
+  }
+}
+~~~
+
+##### 2.name命名路由跳转
+
+（适合path路径长的场景，给path命名，简化）
+
+~~~javascript
+//在VueRouter的路由规则中配置
+const routes = [
+	{ path: '/', redirect: '/my'},
+	{ name: 'music', path: '/find', component: FindVue},
+	{ path: '/friend', component: FriendVue},
+	{ path: '/my', component: MyVue}
+]
+//关键配置
+{ name: 'music', path: '/find', component: FindVue}
+
+export default {
+  name: 'app',
+  methods: {
+	  skip() {
+		  this.$router.push({
+			  //通过路径
+			  // path: '/find'
+			  //通过name
+			  name: 'music'
+		  })
+	  }
+  }
+}
+~~~
+
+##### 3.path路径传参
+
+![image-20230706150304815](https://raw.githubusercontent.com/201819830tsx/pic/master/img/image-20230706150304815.png)
+
+![image-20230706151137681](https://raw.githubusercontent.com/201819830tsx/pic/master/img/image-20230706151137681.png)
+
+**小bug**
+
+```javascript
+this.$router.push('/find?key=${this.inputValue}')
+```
+
+在这里，使用的字符串是单引号 `'` 而不是模板字符串所需的反引号 ```。因此，`${this.inputValue}` 不会被动态地插入到字符串中，而只是作为普通的字符串进行传递。为了解决这个问题，你可以将单引号替换为反引号，如下所示：
+
+```javascript
+this.$router.push(`/find?key=${this.inputValue}`)
+```
+
+##### 4.name命名传参
+
+![image-20230706160848748](https://raw.githubusercontent.com/201819830tsx/pic/master/img/image-20230706160848748.png)
+
+![image-20230706161102776](https://raw.githubusercontent.com/201819830tsx/pic/master/img/image-20230706161102776.png)
+
+##### 5.小结
+
+~~~javascript
+export default {
+  name: 'app',
+  data() {
+  	return {
+		inputValue: ''
+	}
+  },
+  methods: {
+	  skip() {
+		  //1.通过路径跳转
+		  //（1）this.$router.push('路由路径')[简写]
+		  
+		  //     this.$router.push('路由路径?参数名=参数值'),这里使用的是反引号
+		  
+		  // this.$router.push(`/find?key=${this.inputValue}`) 此处为查询参数传参实例
+		  
+		  // this.$router.push(`/find/${this.inputValue}`) //此处为动态路由传参实例
+		  
+		  //（2）this.$router.push({  [完整写法]更适合传参
+		  //       path: '路由路径', 
+		  //	   query: {
+		  //	  	 参数名: 参数值
+		  //	   }
+		  //     })
+		  /* this.$router.push({
+			  path: '/find',
+			  query: {
+				  key: this.inputValue
+			  }
+		  }) 此处为查询参数传参实例*/
+		  
+		  /* this.$router.push({
+			  path: `/find/${this.inputValue}`
+		  }) 此处为动态路由传参实例*/
+		  
+		  
+		  //2.通过命名跳转
+		  /* this.$router.push({
+			  name: 'music'
+		  }) */
+		  
+		  /* this.$router.push({
+		  	  name: 'music',
+		  	  query: {
+		  		  key: this.inputValue
+		  	  },
+			  params: {
+				  key: this.inputValue
+			  }
+		  }) query方式与动态路由方式*/
+		  
+		  this.$router.push({
+			  name: 'music',
+			  query: {
+				  key: this.inputValue
+			  }
+		  })
+	  }
+  }
+}
+~~~
+
+<font color='blue'>注意，一定要看清楚自己定义的是什么</font>，有时候是params
+
+~~~vue
+<p>value：{{ $route.params.key }}</p>
+~~~
+
+
+
