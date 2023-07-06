@@ -272,3 +272,51 @@ new Vue({
 页面组件，配合路由使用，需要放在views文件夹中，用于页面展示
 
 复用组件，放在components文件夹，用于封装复用
+
+#### 4.封装路由模块
+
+在main.js中只导入router模块，然后注入到vue对象中，
+
+~~~vu
+import router from './router/index.js'
+
+
+Vue.config.productionTip = false
+
+new Vue({
+  render: h => h(App),
+  router
+}).$mount('#app')
+~~~
+
+封装
+
+<font color='blue'>注意：此处推荐使用@,代表从src目录开始，指的是绝对路径</font>
+
+~~~vue
+//import FriendVue from '@/views/Friend.vue'
+import FriendVue from '../views/Friend.vue'
+import FindVue from '../views/Find.vue'
+import MyVue from '../views/My.vue'
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+//安装注册(插件初始化)
+Vue.use(VueRouter)
+
+//定义路由，配置路由规则
+const routes = [
+	{ path: '/find', component: FindVue},
+	{ path: '/friend', component: FriendVue},
+	{ path: '/my', component: MyVue}
+]
+
+//创建VueRouter对象实例
+const router = new VueRouter({
+	routes: routes
+})
+
+//导出
+export default router
+~~~
+
+<font color='blue'>注意：最后要导出，作为模块使用</font>
