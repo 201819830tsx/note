@@ -504,6 +504,14 @@ this.$router.push(`/find?key=${this.inputValue}`)
 
 ##### 5.小结
 
+①**查询参数传参**
+
+不需要修改路由，字符串格式为`/路由路径?参数名=参数值` ，通过`this.$router.query.参数名`来获取参数值
+
+②动态路由传参
+
+需要修改路由，路由格式为`/路径/:参数名`，字符串格式为`/路由路径/参数值`，通过`this.$router.params.参数名`来获取参数值
+
 ~~~javascript
 export default {
   name: 'app',
