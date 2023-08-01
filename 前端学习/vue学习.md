@@ -364,7 +364,7 @@ linkExactActiveClass: '类名2'
 如果是在create中要发请求，拿到参数需要加上this
 
 ~~~vu
-this.$route.params
+this.$route.query
 ~~~
 
 #####  2.动态路由传参
@@ -391,7 +391,7 @@ const routes = [
 
 ③对应页面组件接收传递过来的值
 
-- $route.query.参数名
+- $route.params.参数名
 
 #### 6.路由重定向
 
@@ -581,5 +581,140 @@ export default {
 <p>value：{{ $route.params.key }}</p>
 ~~~
 
+## 五、VueX
+
+![68321278417](https://raw.githubusercontent.com/201819830tsx/pic/master/img/1683212784179.png)
+
+#### 1.使用
+
+##### 1.安装 vuex
+
+安装vuex与vue-router类似，vuex是一个独立存在的插件，如果脚手架初始化没有选 vuex，就需要额外安装。
+
+```bash
+yarn add vuex@3 或者 npm i vuex@3
+```
+
+##### 2.新建 `store/index.js` 专门存放 vuex
+
+​	为了维护项目目录的整洁，在src目录下新建一个store目录其下放置一个index.js文件。 (和 `router/index.js` 类似)
+
+​	![68321280582](D:\BaiduNetdiskDownload\Vue2+3入门到实战-配套资料\02-MD笔记\day07\assets\1683212805824.png)
+
+##### 3.创建仓库 `store/index.js` 
+
+```jsx
+// 导入 vue
+import Vue from 'vue'
+// 导入 vuex
+import Vuex from 'vuex'
+// vuex也是vue的插件, 需要use一下, 进行插件的安装初始化
+Vue.use(Vuex)
+
+// 创建仓库 store
+const store = new Vuex.Store()
+
+// 导出仓库
+export default store
+```
+
+##### 4. 在 main.js 中导入挂载到 Vue 实例上
+
+```js
+import Vue from 'vue'
+import App from './App.vue'
+import store from './store'
+
+Vue.config.productionTip = false
+
+new Vue({
+  render: h => h(App),
+  store
+}).$mount('#app')
+```
+
+此刻起, 就成功创建了一个 **空仓库!!**
+
+##### 5.测试打印Vuex
+
+App.vue
+
+```js
+created(){
+  console.log(this.$store)
+}
+```
 
 
+
+~~~vue
+npm install vue@3
+~~~
+
+#### 2.非模块化使用小结
+
+##### 1.直接使用
+
+1. state --> $store.state.数据项名
+2. getters --> $store.getters.属性名
+3. mutations --> this.$store.commit('方法名', 其他参数)
+4. actions --> this.$store.dispatch('方法名', 其他参数)
+
+##### 2.辅助函数
+
+类似模块化，以mapMutations为例
+
+> mapMutations和mapState很像，它把位于mutations中的方法提取了出来，我们可以将它导入
+
+```js
+import  { mapMutations } from 'vuex'
+methods: {
+    ...mapMutations(['addCount'])
+}
+```
+
+> 上面代码的含义是将mutations的方法导入了methods中，等价于
+
+```js
+methods: {
+      // commit(方法名, 载荷参数)
+      addCount () {
+          this.$store.commit('addCount')
+      }
+ }
+```
+
+此时，就可以直接通过this.addCount调用了
+
+```jsx
+<button @click="addCount">值+1</button>
+```
+
+但是请注意： Vuex中mutations中要求不能写异步代码，如果有异步的ajax请求，应该放置在actions中
+
+#### 3.模块化使用小结
+
+##### 1.直接使用
+
+1. state --> $store.state.**模块名**.数据项名
+2. getters --> $store.getters['**模块名**/属性名']
+3. mutations --> $store.commit('**模块名**/方法名', 其他参数)
+4. actions --> $store.dispatch('**模块名**/方法名', 其他参数)
+
+##### 2.借助辅助方法使用
+
+1.import { mapXxxx, mapXxx } from 'vuex'
+
+computed、methods: {
+
+​     // **...mapState、...mapGetters放computed中；**
+
+​    //  **...mapMutations、...mapActions放methods中；**
+
+​    ...mapXxxx(**'模块名'**, ['数据项|方法']),
+
+​    ...mapXxxx(**'模块名'**, { 新的名字: 原来的名字 }),
+
+}
+
+2.组件中直接使用 属性 `{{ age }}` 或 方法 `@click="updateAge(2)"`
